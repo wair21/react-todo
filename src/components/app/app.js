@@ -12,27 +12,18 @@ export default class App extends Component {
 
     state = {
         todoData: [
-            {
-                id: 1,
-                label: 'drink something 1',
-                important: false
-            },
-            {
-                id: 2,
-                label: 'drink tea 2',
-                important: true
-            },
-            {
-                id: 3,
-                label: 'drink coffee 3',
-                important: true
-            },
-        ],
-        show: {
-            toDo: 3,
-            done: 1
-        }
+            this.createTodoItem('DrincCoddee')
+        ]
     };
+
+    createTodoItem(label) {
+        return {
+            label,
+            important: false,
+            done: false,
+            id: this.maxId++
+        }
+    }
 
     /**
      *  удаление из списка
@@ -54,19 +45,16 @@ export default class App extends Component {
         });
     };
 
+    /**
+     * обработка события добавления элемента в список
+     * @param text
+     */
     addItem = (text) => {
-        // compose new data for item
-        const newItem = {
-            label: text,
-            important: false,
-             id: this.maxId++
-        };
-
-        // add new tem to list
         this.setState(({todoData})=> {
         const newArr = [
                 ...todoData,
-            newItem
+           // newItem
+            this.createTodoItem(text)
         ];
 
         return {
@@ -75,15 +63,58 @@ export default class App extends Component {
         });
     };
 
+    /**
+     * Счетчик важных
+     * @param id
+     */
+    toggleImportant = (id) => {
+         this.changeData(id, 'done');
+    };
+
+    /**
+     * счетчик выполненных
+     * @param id
+     */
+    toggleDone = (id) => {
+          this.changeData(id, 'important');
+    };
+
+    changeData= (id, name) => {
+
+        this.setState(({todoData}) => {
+            const idx = todoData.findIndex((el) => el.id === id);
+            const oldItem = todoData[idx];
+            const newItem = {...oldItem, [name]: !oldItem[name]};
+
+            const newData =[
+                ...todoData.slice(0,idx),
+                newItem,
+                ...todoData.slice(idx+1)
+            ];
+
+            return  {
+                todoData: newData
+            };
+        });
+    };
+
+
     render () {
+        const countDone = this.state.todoData
+            .filter((el) =>  el.done ).length;
+
+        const countTodo = this.state.todoData.length - countDone;
+
         return (
             <div>
                 <span> { new Date().toString()}</span>
-                <AppHeader toDo={this.state.show.toDo} done={this.state.show.done}/>
+                <AppHeader toDo={countTodo} done={countDone}/>
                 <SearchPanel/>
                 <TodoList
                     todos={this.state.todoData}
                     onDeleted={(id)=> this.deleteItem(id)}
+                    onToggleImportant={(id)=> this.toggleImportant(id)}
+                    onToggleDone={(id)=> this.toggleDone(id)}
                 />
                 <ItemAddForm onItemAdded={this.addItem}/>
             </div>
