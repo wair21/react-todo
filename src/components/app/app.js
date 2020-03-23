@@ -12,9 +12,12 @@ export default class App extends Component {
 
     state = {
         todoData: [
-            this.createTodoItem('DrincCoddee')
+            this.createTodoItem('DrinkCoffee'),
+            this.createTodoItem('DrinkTea'),
+            this.createTodoItem('DrinkWater')
         ],
-        term: ''
+        term: '',
+        filter: 'all' // active, all, done
     };
 
     createTodoItem(label) {
@@ -104,6 +107,11 @@ export default class App extends Component {
         this.setState({term});
     };
 
+    // обработчик нажатия кнопок фильтра
+    onFilterChange = (filter) => {
+        this.setState({filter});
+    };
+
     /**
      * Функция поиска записей из списка - работа строки поиска
      * @param items
@@ -111,7 +119,7 @@ export default class App extends Component {
      * @returns {*}
      */
     search = (items, term) => {
-        // поиск идет если только есть непустая мтрока поиска
+        // поиск идет если только есть непустая строка поиска
         if (term.length === 0) {
             return items;
         }
@@ -121,11 +129,27 @@ export default class App extends Component {
         });
     };
 
+    /**
+     * Функция фильтрации данных по какому то признаку
+     */
+    filter = (items, filter) => {
+        switch(filter) {
+            case 'all':
+                return items;
+            case 'active':
+                return items.filter((item) => !item.done );
+            case 'done':
+                return items.filter((item) => item.done );
+            default:
+                return items;
+        }
+    };
+
 
     render () {
-        const { todoData, term } = this.state;
+        const { todoData, term, filter } = this.state;
 
-        const visibleItems = this.search(todoData, term);
+        const visibleItems = this.filter(this.search(todoData, term), filter);
         const countDone = todoData
             .filter((el) =>  el.done ).length;
 
@@ -137,6 +161,10 @@ export default class App extends Component {
                 <AppHeader toDo={countTodo} done={countDone}/>
                 <SearchPanel
                     onSearchChange={this.onSearchChange}
+                />
+                <ItemStatusFilter
+                    filter={filter}
+                    onFilterChange={this.onFilterChange}
                 />
                 <TodoList
                     todos={visibleItems}
